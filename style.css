@@ -1,0 +1,847 @@
+/* AeroWeather Custom Stylesheet */
+
+:root {
+  --bg-gradient: linear-gradient(135deg, #12102e 0%, #0b1326 50%, #060e20 100%);
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-border-highlight: rgba(255, 255, 255, 0.25);
+  --glass-heavy-bg: rgba(11, 19, 38, 0.72);
+  --primary-glow: rgba(164, 201, 255, 0.35);
+  --accent-blue: #60a5fa;
+  --accent-cyan: #38bdf8;
+  --accent-amber: #fbbf24;
+  --accent-rose: #f43f5e;
+}
+
+body {
+  background: var(--bg-gradient);
+  min-height: 100vh;
+  color: #dae2fd;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background-attachment: fixed;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ==========================================================
+   RAINBOW SKY BACKGROUND ANIMATION (Sea of Clouds & Double Rainbow)
+========================================================== */
+
+.rainbow-sky-backdrop-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Panoramic Sea of Clouds & Double Rainbow Backdrop with Gentle Cinematic Drift */
+.rainbow-clouds-photo {
+  position: absolute;
+  inset: -6%;
+  width: 112%;
+  height: 112%;
+  background-image: url('assets/rainbow_clouds_bg.jpg');
+  background-size: cover;
+  background-position: center 25%;
+  animation: rainbowCloudsPan 35s ease-in-out infinite alternate;
+  will-change: transform;
+  transition: background-image 1.2s ease-in-out, filter 1.2s ease-in-out;
+}
+
+/* Dynamic Night Rainbow Backdrop (Moonlit Sea of Clouds) */
+.rainbow-sky-backdrop-layer.is-night .rainbow-clouds-photo {
+  background-image: url('assets/rainbow_night_bg.jpg');
+  background-position: center 25%;
+  filter: brightness(0.95) contrast(1.05);
+}
+
+@keyframes rainbowCloudsPan {
+  0% { transform: scale(1) translate(0, 0); }
+  50% { transform: scale(1.05) translate(-1.2%, -0.8%); }
+  100% { transform: scale(1.02) translate(1.2%, 0.6%); }
+}
+
+/* Dark Glassmorphic Atmosphere Tint */
+.rainbow-clouds-tint {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(11, 19, 38, 0.32) 0%,
+    rgba(11, 19, 38, 0.55) 45%,
+    rgba(11, 19, 38, 0.88) 100%
+  );
+  backdrop-filter: blur(0.5px);
+  transition: background 1.2s ease;
+}
+
+.rainbow-sky-backdrop-layer.is-night .rainbow-clouds-tint {
+  background: linear-gradient(
+    180deg,
+    rgba(8, 14, 28, 0.38) 0%,
+    rgba(10, 18, 36, 0.62) 45%,
+    rgba(7, 12, 24, 0.92) 100%
+  );
+}
+
+/* Animated Golden Sunset / Moonlit Flare (Horizon Flare Pulse) */
+.sunset-flare-pulse {
+  position: absolute;
+  top: 48%;
+  left: 7%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 230, 150, 0.85) 0%, rgba(255, 140, 50, 0.45) 35%, rgba(255, 100, 50, 0.15) 60%, transparent 75%);
+  filter: blur(28px);
+  animation: sunsetFlareGlow 4.5s ease-in-out infinite alternate;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  transition: background 1.2s ease, left 1.2s ease;
+}
+
+/* Moonlit Celestial Corona in Night Mode */
+.rainbow-sky-backdrop-layer.is-night .sunset-flare-pulse {
+  left: 8.5%;
+  top: 47%;
+  background: radial-gradient(circle, rgba(235, 248, 255, 0.92) 0%, rgba(147, 197, 253, 0.5) 32%, rgba(59, 130, 246, 0.2) 60%, transparent 75%);
+  filter: blur(22px);
+}
+
+@keyframes sunsetFlareGlow {
+  0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.65; }
+  50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.95; }
+  100% { transform: translate(-50%, -50%) scale(1.02); opacity: 0.75; }
+}
+
+/* Animated Double Rainbow Spectral Glow */
+.rainbow-arc-glow-primary {
+  position: absolute;
+  top: 2%;
+  left: 48%;
+  transform: translateX(-50%);
+  width: 82vw;
+  height: 52vh;
+  border-radius: 50% 50% 0 0;
+  border-top: 20px solid rgba(255, 75, 114, 0.4);
+  box-shadow:
+    0 -8px 24px rgba(255, 75, 114, 0.45),
+    0 -18px 38px rgba(255, 143, 61, 0.42),
+    0 -28px 48px rgba(255, 209, 82, 0.38),
+    0 -38px 58px rgba(45, 212, 191, 0.38),
+    0 -48px 68px rgba(56, 189, 248, 0.42),
+    0 -58px 78px rgba(99, 102, 241, 0.4),
+    0 -68px 88px rgba(192, 132, 252, 0.45);
+  filter: blur(14px);
+  opacity: 0.85;
+  animation: rainbowGlowPulse 5.5s ease-in-out infinite alternate;
+  will-change: opacity, transform;
+  transition: border-top-color 1.2s ease, box-shadow 1.2s ease;
+}
+
+.rainbow-sky-backdrop-layer.is-night .rainbow-arc-glow-primary {
+  border-top: 20px solid rgba(147, 197, 253, 0.4);
+  box-shadow:
+    0 -8px 24px rgba(244, 114, 182, 0.32),
+    0 -18px 38px rgba(251, 191, 36, 0.3),
+    0 -28px 48px rgba(52, 211, 153, 0.38),
+    0 -38px 58px rgba(56, 189, 248, 0.45),
+    0 -48px 68px rgba(129, 140, 248, 0.48),
+    0 -58px 78px rgba(192, 132, 252, 0.52);
+}
+
+@keyframes rainbowGlowPulse {
+  0% { opacity: 0.65; transform: translateX(-50%) scale(0.99); }
+  50% { opacity: 0.95; transform: translateX(-50%) scale(1.015); }
+  100% { opacity: 0.75; transform: translateX(-50%) scale(1); }
+}
+
+/* Floating Sunset Cloud Wisps */
+.cloud-wisps-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cloud-wisp {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(45px);
+  opacity: 0.45;
+  will-change: transform;
+}
+
+.wisp-1 {
+  width: 550px;
+  height: 170px;
+  top: 42%;
+  left: -20%;
+  background: radial-gradient(ellipse, rgba(255, 190, 160, 0.45) 0%, rgba(255, 130, 110, 0.15) 60%, transparent 80%);
+  animation: wispDrift1 50s linear infinite;
+}
+
+.wisp-2 {
+  width: 650px;
+  height: 200px;
+  top: 55%;
+  left: 30%;
+  background: radial-gradient(ellipse, rgba(255, 220, 170, 0.4) 0%, rgba(147, 197, 253, 0.15) 60%, transparent 80%);
+  animation: wispDrift2 65s linear infinite;
+}
+
+@keyframes wispDrift1 {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(130vw); }
+}
+
+@keyframes wispDrift2 {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(130vw); }
+}
+
+/* Prismatic Sparkle Stars */
+.rainbow-sparkles-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sparkle-star {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 12px 3px rgba(255, 255, 255, 0.9), 0 0 25px 6px rgba(56, 189, 248, 0.7);
+  animation: sparkleTwinkle 3s ease-in-out infinite alternate;
+}
+
+.s-1 { top: 22%; left: 32%; animation-delay: 0s; }
+.s-2 { top: 12%; left: 52%; animation-delay: 1s; }
+.s-3 { top: 25%; left: 74%; animation-delay: 1.8s; }
+.s-4 { top: 46%; left: 16%; animation-delay: 0.6s; }
+
+@keyframes sparkleTwinkle {
+  0% { transform: scale(0.4); opacity: 0.2; }
+  50% { transform: scale(1.4); opacity: 1; }
+  100% { transform: scale(0.6); opacity: 0.3; }
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  border-top: 1px solid var(--glass-border-highlight);
+  border-left: 1px solid var(--glass-border-highlight);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel:hover {
+  border-color: rgba(164, 201, 255, 0.3);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+}
+
+.glass-panel-heavy {
+  background: var(--glass-heavy-bg);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.glass-card-interactive {
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-card-interactive:hover {
+  transform: translateY(-2px);
+  border-color: rgba(164, 201, 255, 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Text glow effects */
+.text-glow {
+  text-shadow: 0 0 25px rgba(164, 201, 255, 0.55), 0 0 50px rgba(96, 165, 250, 0.25);
+}
+
+.text-glow-amber {
+  text-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+}
+
+/* Custom scrollbars */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(164, 201, 255, 0.25);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(164, 201, 255, 0.45);
+}
+
+/* Pulsing and smooth animations */
+@keyframes subtle-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+}
+
+.animate-subtle-pulse {
+  animation: subtle-pulse 4s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+/* Skeleton shimmer loading */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.12) 37%,
+    rgba(255, 255, 255, 0.04) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: 0.5rem;
+}
+
+/* Hero City Background Image Transition */
+.city-bg-image {
+  transition: opacity 0.8s ease-in-out, transform 1.2s ease-out;
+}
+
+/* Leaflet Map Dark Styling Override */
+.leaflet-container {
+  background: #0b1326 !important;
+  font-family: inherit !important;
+  border-radius: 0.75rem;
+}
+
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background: rgba(17, 25, 45, 0.92) !important;
+  backdrop-filter: blur(12px) !important;
+  color: #dae2fd !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+  border-radius: 10px !important;
+}
+
+.leaflet-control-zoom a {
+  background: rgba(17, 25, 45, 0.85) !important;
+  color: #a4c9ff !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: rgba(30, 41, 69, 0.95) !important;
+  color: #fff !important;
+}
+
+/* Search Dropdown list animation */
+.search-dropdown-menu {
+  animation: fadeInDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top center;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Dynamic Temperature Range Bar */
+.temp-bar-bg {
+  background: rgba(255, 255, 255, 0.08);
+  position: relative;
+  height: 6px;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.temp-bar-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #60a5fa 0%, #fbbf24 60%, #f87171 100%);
+  transition: width 0.6s ease, left 0.6s ease;
+}
+
+/* Modal animation */
+.modal-backdrop {
+  animation: modalFadeIn 0.25s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ==========================================================
+   BENTO CARDS ANIMATIONS (PRECIPITATION & AIR QUALITY)
+========================================================== */
+
+/* Static Solid Glass Cloud (Stationary) */
+#static-precip-cloud {
+  transform: none !important;
+}
+
+/* Fluid Falling Rain Animation (Strictly Emerging from Under the Cloud) */
+@keyframes continuousRainDrop {
+  0% {
+    transform: translateY(-2px);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(26px);
+    opacity: 0;
+  }
+}
+
+.raindrop-stream {
+  animation: continuousRainDrop 1.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+  will-change: transform, opacity;
+}
+.raindrop-1 { animation-delay: 0s; animation-duration: 1.0s; }
+.raindrop-2 { animation-delay: 0.22s; animation-duration: 1.1s; }
+.raindrop-3 { animation-delay: 0.45s; animation-duration: 0.95s; }
+.raindrop-4 { animation-delay: 0.65s; animation-duration: 1.05s; }
+.raindrop-5 { animation-delay: 0.82s; animation-duration: 1.0s; }
+.raindrop-6 { animation-delay: 0.35s; animation-duration: 1.15s; }
+
+/* Rain Surface Splash Ripples */
+@keyframes rainSplashRipple {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+    stroke-width: 1.5;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  80% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+    stroke-width: 0.4;
+  }
+}
+
+.splash-ripple {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: rainSplashRipple 1.1s ease-out infinite;
+}
+.ripple-1 { animation-delay: 0.85s; }
+.ripple-2 { animation-delay: 1.05s; }
+.ripple-3 { animation-delay: 0.65s; }
+.ripple-4 { animation-delay: 0.45s; }
+
+/* Breeze / Air Flow Streamlines */
+@keyframes breezeStream {
+  0% {
+    stroke-dashoffset: 80;
+    opacity: 0.1;
+  }
+  40% {
+    opacity: 0.85;
+  }
+  80% {
+    opacity: 0.6;
+  }
+  100% {
+    stroke-dashoffset: -80;
+    opacity: 0;
+  }
+}
+
+.breeze-line {
+  stroke-dasharray: 40 40;
+  animation: breezeStream 2.6s linear infinite;
+}
+.breeze-line-1 { animation-delay: 0s; }
+.breeze-line-2 { animation-delay: 0.9s; }
+.breeze-line-3 { animation-delay: 1.7s; }
+
+/* Air Quality Glow Pulse */
+@keyframes aqiGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px currentColor);
+    opacity: 0.85;
+  }
+  50% {
+    filter: drop-shadow(0 0 18px currentColor);
+    opacity: 1;
+  }
+}
+
+.animate-aqi-pulse {
+  animation: aqiGlow 2.5s ease-in-out infinite;
+}
+
+/* Floating Air Particles */
+@keyframes particleFloat {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(35px, -15px);
+    opacity: 0;
+  }
+}
+
+.air-particle {
+  animation: particleFloat 3s ease-in-out infinite;
+}
+.particle-1 { animation-delay: 0.2s; }
+.particle-2 { animation-delay: 1.1s; }
+.particle-3 { animation-delay: 2.0s; }
+
+/* ==========================================================
+   LEAFLET MAP & RADAR DARK GLASSMORPHISM STYLING
+========================================================== */
+
+.leaflet-container {
+  background-color: #060b18 !important;
+  font-family: inherit !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 10 !important;
+}
+
+.leaflet-bar {
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  background: rgba(11, 19, 38, 0.88) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.leaflet-bar a {
+  background-color: transparent !important;
+  color: #a4c9ff !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.2s ease !important;
+}
+
+.leaflet-bar a:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: rgba(11, 19, 38, 0.94) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6) !important;
+}
+
+.leaflet-popup-tip {
+  background: rgba(11, 19, 38, 0.94) !important;
+}
+
+.leaflet-tile {
+  filter: brightness(0.95) contrast(1.05);
+}
+
+/* 3D Earth Pin Beacon & Sonic Landing Waves */
+@keyframes beaconPulse {
+  0% { transform: scale(0.2); opacity: 1; border-width: 3px; }
+  60% { transform: scale(2.4); opacity: 0.35; border-width: 1.5px; }
+  100% { transform: scale(3.4); opacity: 0; border-width: 0.5px; }
+}
+
+@keyframes beaconDrop {
+  0% { transform: translateY(-40px) scale(0.6); opacity: 0; }
+  60% { transform: translateY(5px) scale(1.1); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.custom-3d-beacon-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.beacon-core-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 10%, #38bdf8 60%, #0284c7 100%);
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 16px 4px rgba(56, 189, 248, 0.9), 0 0 30px rgba(56, 189, 248, 0.6);
+  animation: beaconDrop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  z-index: 2;
+}
+
+.beacon-wave-1, .beacon-wave-2 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50px;
+  height: 50px;
+  margin-top: -25px;
+  margin-left: -25px;
+  border-radius: 50%;
+  border: 2px solid #38bdf8;
+  background: rgba(56, 189, 248, 0.18);
+  pointer-events: none;
+  animation: beaconPulse 2s cubic-bezier(0.2, 0.8, 0.4, 1) infinite;
+  z-index: 1;
+}
+
+.beacon-wave-2 {
+  animation-delay: 0.9s;
+}
+
+/* 3D Earth Globe Viewport styling */
+#globe-3d-viewport canvas {
+  display: block;
+  outline: none;
+}
+
+@keyframes bounceSubtle {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, -6px); }
+}
+
+.animate-bounce-subtle {
+  animation: bounceSubtle 2.5s ease-in-out infinite;
+}
+
+/* ==========================================================
+   HIGH-VISIBILITY SEARCH INPUTS & PLACEHOLDER STYLES
+========================================================== */
+
+#desktop-search-input,
+#mobile-search-input,
+#map-search-input {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+#desktop-search-input::placeholder,
+#mobile-search-input::placeholder,
+#map-search-input::placeholder {
+  color: rgba(226, 232, 240, 0.85) !important; /* bright crisp slate-200 / 85% */
+  opacity: 1 !important;
+  font-weight: 400 !important;
+}
+
+#desktop-search-input:focus::placeholder,
+#mobile-search-input:focus::placeholder,
+#map-search-input:focus::placeholder {
+  color: rgba(226, 232, 240, 0.55) !important;
+}
+
+/* ==========================================================
+   HIGH-VISIBILITY BRAND LOGO TITLE IN ALL MODES
+========================================================== */
+
+.brand-logo-title {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9), 0 0 16px rgba(164, 201, 255, 0.6) !important;
+  z-index: 20 !important;
+  position: relative !important;
+}
+
+.brand-logo-title span {
+  color: #38bdf8 !important;
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.7) !important;
+}
+
+/* ==========================================================
+   HIGH-CONTRAST ACTION BUTTONS (LOCATION, UNIT & SETTINGS)
+========================================================== */
+
+.nav-action-btn,
+#geo-btn,
+#unit-toggle-btn,
+#settings-btn {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  max-width: 40px !important;
+  max-height: 40px !important;
+  border-radius: 50% !important;
+  aspect-ratio: 1 / 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), 0 0 10px rgba(56, 189, 248, 0.2) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  transition: all 0.2s ease !important;
+}
+
+.mobile-action-btn {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  max-width: 36px !important;
+  max-height: 36px !important;
+  border-radius: 50% !important;
+  aspect-ratio: 1 / 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), 0 0 10px rgba(56, 189, 248, 0.2) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  transition: all 0.2s ease !important;
+}
+
+.nav-action-btn:hover,
+.mobile-action-btn:hover,
+#geo-btn:hover,
+#unit-toggle-btn:hover,
+#settings-btn:hover {
+  background: rgba(255, 255, 255, 0.22) !important;
+  border-color: rgba(56, 189, 248, 0.7) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 16px rgba(56, 189, 248, 0.45) !important;
+}
+
+.unit-toggle-label {
+  color: #38bdf8 !important;
+  font-weight: 800 !important;
+  font-family: inherit !important;
+  font-size: 1.05rem !important;
+  letter-spacing: -0.04em !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.85) !important;
+  line-height: 1 !important;
+  user-select: none !important;
+  transform: translateY(-0.5px);
+}
+
+.mobile-action-btn .unit-toggle-label {
+  font-size: 0.95rem !important;
+}
+
+#geo-btn .material-symbols-outlined,
+#settings-btn .material-symbols-outlined,
+.mobile-action-btn .material-symbols-outlined {
+  color: #ffffff !important;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.7) !important;
+  font-size: 1.25rem !important;
+  line-height: 1 !important;
+}
+
