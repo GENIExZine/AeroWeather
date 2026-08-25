@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>AeroWeather - Live Weather Dashboard & Worldwide Forecast</title>
+  
+  <!-- App Favicon & Logo -->
+  <link rel="icon" type="image/jpeg" href="assets/app_logo.jpg"/>
+  <link rel="apple-touch-icon" href="assets/app_logo.jpg"/>
+  
+  <!-- Tailwind CSS CDN with forms & container queries -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  
+  <!-- Fonts & Google Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <!-- Leaflet.js for Interactive Maps & Radar -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Three.js for 3D Earth Globe Animation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css"/>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "error": "#ffb4ab",
+            "on-error-container": "#ffdad6",
+            "tertiary-fixed-dim": "#ffb2b7",
+            "on-error": "#690005",
+            "on-secondary": "#2d2a5b",
+            "on-secondary-fixed-variant": "#444173",
+            "outline-variant": "#414751",
+            "background": "#0b1326",
+            "on-primary-fixed-variant": "#004883",
+            "surface-container-low": "#131b2e",
+            "on-primary-container": "#003a6b",
+            "on-surface": "#dae2fd",
+            "inverse-on-surface": "#283044",
+            "surface": "#0b1326",
+            "on-primary-fixed": "#001c39",
+            "on-secondary-fixed": "#181445",
+            "primary": "#a4c9ff",
+            "on-tertiary-container": "#780021",
+            "on-tertiary-fixed-variant": "#92002a",
+            "primary-container": "#60a5fa",
+            "surface-tint": "#a4c9ff",
+            "surface-variant": "#222a3d",
+            "on-surface-variant": "#8e99ac",
+            "secondary-container": "#2c354d",
+            "on-secondary-container": "#c5d0ec",
+            "surface-container-high": "#1a2236",
+            "surface-container-highest": "#222a3d",
+            "surface-container": "#161e32",
+            "tertiary": "#ffb2b7",
+            "surface-dim": "#0b1326",
+            "secondary": "#a4c9ff",
+            "surface-bright": "#31394f",
+            "tertiary-container": "#5c0017",
+            "outline": "#8b919d",
+            "inverse-primary": "#0061a6",
+            "inverse-surface": "#dae2fd",
+            "secondary-fixed-dim": "#c5c3ea",
+            "tertiary-fixed": "#ffd9dc",
+            "on-tertiary": "#5c0017",
+            "on-tertiary-fixed": "#40000d",
+            "secondary-fixed": "#e3e0ff",
+            "on-background": "#dae2fd",
+            "on-secondary-fixed": "#181445"
+          },
+          fontFamily: {
+            "headline-lg": ["Inter", "sans-serif"],
+            "headline-lg-mobile": ["Inter", "sans-serif"],
+            "body-md": ["Inter", "sans-serif"],
+            "label-caps": ["Inter", "sans-serif"],
+            "display-xl": ["Inter", "sans-serif"],
+            "mono": ["JetBrains Mono", "monospace"]
+          },
+          fontSize: {
+            "headline-lg": ["1.75rem", { lineHeight: "2.25rem", letterSpacing: "-0.02em" }],
+            "headline-lg-mobile": ["1.25rem", { lineHeight: "1.75rem", letterSpacing: "-0.01em" }],
+            "body-md": ["0.875rem", { lineHeight: "1.25rem" }],
+            "label-caps": ["0.6875rem", { lineHeight: "0.875rem", letterSpacing: "0.08em" }],
+            "display-xl": ["4.25rem", { lineHeight: "4.25rem", letterSpacing: "-0.04em" }]
+          },
+          spacing: {
+            "card-gap": "1.25rem",
+            "margin-desktop": "2.5rem",
+            "margin-mobile": "1rem"
+          },
+          maxWidth: {
+            "container-max": "1400px"
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="text-on-background font-body-md overflow-x-hidden relative min-h-screen">
+
+  <!-- Rainbow Sky Sea-of-Clouds & Double Rainbow Animated Background Layer -->
+  <div class="rainbow-sky-backdrop-layer" id="rainbow-sky-backdrop" aria-hidden="true">
+    <div class="rainbow-clouds-photo"></div>
+    <div class="rainbow-clouds-tint"></div>
+    <div class="sunset-flare-pulse"></div>
+    <div class="rainbow-arc-glow-primary"></div>
+    <div class="cloud-wisps-container">
+      <div class="cloud-wisp wisp-1"></div>
+      <div class="cloud-wisp wisp-2"></div>
+    </div>
+    <div class="rainbow-sparkles-layer">
+      <div class="sparkle-star s-1"></div>
+      <div class="sparkle-star s-2"></div>
+      <div class="sparkle-star s-3"></div>
+      <div class="sparkle-star s-4"></div>
+    </div>
+  </div>
+
+  <!-- Top Navigation (Desktop) -->
+  <nav class="hidden md:flex bg-surface/40 docked full-width top-0 backdrop-blur-2xl border-b border-white/10 shadow-lg justify-between items-center w-full px-margin-desktop py-3 max-w-container-max mx-auto z-50 fixed">
+    <div class="flex items-center gap-8">
+      <div class="flex items-center gap-3 cursor-pointer group" onclick="switchTab('dashboard')">
+        <div class="relative w-10 h-10 rounded-2xl overflow-hidden border border-white/25 shadow-lg shadow-cyan-500/25 group-hover:scale-105 transition-all flex items-center justify-center flex-shrink-0 bg-surface-variant/40 backdrop-blur-md">
+          <img src="assets/app_logo.jpg" alt="AeroWeather 3D Logo" class="w-full h-full object-cover object-center rounded-2xl"/>
+          <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/20 pointer-events-none"></div>
+        </div>
+        <span class="font-headline-lg text-2xl font-bold tracking-tight text-white">Aero<span class="text-primary font-normal">Weather</span></span>
+      </div>
+      <div class="flex gap-6 items-center">
+        <a class="text-primary font-bold border-b-2 border-primary pb-1 cursor-pointer transition-colors" data-nav-tab="dashboard">Dashboard</a>
+        <a class="text-on-surface-variant font-medium hover:text-primary transition-colors cursor-pointer" data-nav-tab="maps">Maps</a>
+        <a class="text-on-surface-variant font-medium hover:text-primary transition-colors cursor-pointer" data-nav-tab="radar">Radar</a>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3 w-1/3 min-w-[320px] max-w-[460px]">
+      <!-- Search Box with Autocomplete Dropdown -->
+      <div class="relative w-full">
+        <span class="material-symbols-outlined absolute left-3.5 top-1/2 transform -translate-y-1/2 text-on-surface-variant pointer-events-none">search</span>
+        <input id="desktop-search-input" class="w-full bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-10 text-sm text-on-surface placeholder-on-surface-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-inner" placeholder="Search cities worldwide..." type="text" autocomplete="off"/>
+        
+        <!-- Search Autocomplete Dropdown -->
+        <div id="desktop-search-dropdown" class="search-dropdown-menu hidden absolute top-full left-0 right-0 mt-2 glass-panel-heavy rounded-2xl border border-white/15 overflow-hidden z-50 shadow-2xl max-h-80 overflow-y-auto custom-scrollbar">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Quick Geolocation Button -->
+      <button id="geo-btn" class="p-2 text-on-surface-variant hover:text-primary hover:bg-white/5 rounded-full transition-all flex items-center justify-center" title="Locate Current Position">
+        <span class="material-symbols-outlined text-xl">my_location</span>
+      </button>
+
+      <!-- Unit Toggle (°C / °F) -->
+      <button id="unit-toggle-btn" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-xs font-semibold font-label-caps text-primary hover:border-primary/40 transition-all flex items-center gap-1 shadow-sm" title="Toggle °C / °F">
+        <span class="unit-toggle-label">°C</span>
+      </button>
+
+      <!-- Settings Button -->
+      <button id="settings-btn" class="p-2 text-on-surface-variant hover:text-primary hover:bg-white/5 rounded-full transition-all flex items-center justify-center" title="Settings">
+        <span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 0;">settings</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 glass-panel-heavy z-50 flex justify-around py-2.5 border-t border-white/10 backdrop-blur-2xl">
+    <button class="flex flex-col items-center text-primary" data-nav-tab="dashboard">
+      <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+      <span class="font-label-caps text-[11px] mt-0.5">Dashboard</span>
+    </button>
+    <button class="flex flex-col items-center text-on-surface-variant hover:text-primary" data-nav-tab="maps">
+      <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 0;">map</span>
+      <span class="font-label-caps text-[11px] mt-0.5">Maps</span>
+    </button>
+    <button class="flex flex-col items-center text-on-surface-variant hover:text-primary" data-nav-tab="radar">
+      <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 0;">radar</span>
+      <span class="font-label-caps text-[11px] mt-0.5">Radar</span>
+    </button>
+    <button id="mobile-settings-btn" class="flex flex-col items-center text-on-surface-variant hover:text-primary" onclick="document.getElementById('settings-modal').classList.remove('hidden'); document.getElementById('settings-modal').classList.add('flex');">
+      <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 0;">settings</span>
+      <span class="font-label-caps text-[11px] mt-0.5">Settings</span>
+    </button>
+  </nav>
+
+  <!-- Mobile Header Search (Visible on mobile only) -->
+  <header class="md:hidden pt-4 px-margin-mobile pb-2 flex flex-col gap-3">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="relative w-9 h-9 rounded-xl overflow-hidden border border-white/25 shadow-md flex items-center justify-center flex-shrink-0 bg-surface-variant/40 backdrop-blur-md">
+          <img src="assets/app_logo.jpg" alt="AeroWeather 3D Logo" class="w-full h-full object-cover object-center rounded-xl"/>
+        </div>
+        <span class="font-bold text-lg text-white">Aero<span class="text-primary font-normal">Weather</span></span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="locateUser()" class="p-2 bg-white/5 rounded-full text-on-surface-variant hover:text-primary">
+          <span class="material-symbols-outlined text-lg">my_location</span>
+        </button>
+        <button onclick="toggleTemperatureUnit()" class="px-2.5 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-semibold text-primary">
+          <span class="unit-toggle-label">°C</span>
+        </button>
+      </div>
+    </div>
+    <div class="relative w-full">
+      <span class="material-symbols-outlined absolute left-3.5 top-1/2 transform -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+      <input id="mobile-search-input" class="w-full bg-white/5 border border-white/10 rounded-full py-2.5 pl-10 pr-4 text-sm text-on-surface placeholder-on-surface-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-inner" placeholder="Search cities worldwide..." type="text" autocomplete="off"/>
+      
+      <!-- Mobile Search Autocomplete Dropdown -->
+      <div id="mobile-search-dropdown" class="search-dropdown-menu hidden absolute top-full left-0 right-0 mt-2 glass-panel-heavy rounded-2xl border border-white/15 overflow-hidden z-50 shadow-2xl max-h-72 overflow-y-auto custom-scrollbar">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
+  </header>
+
+  <!-- Popular City Quick Selection Chips -->
+  <div class="pt-2 md:pt-24 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+    <div class="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+      <span class="text-xs text-on-surface-variant font-label-caps uppercase tracking-wider flex-shrink-0 flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm">trending_up</span> Trending:
+      </span>
+      <button data-city-preset="Toronto" class="px-3 py-1 bg-white/5 hover:bg-white/15 border border-white/10 rounded-full text-xs text-on-surface whitespace-nowrap transition-all">🇨🇦 Toronto</button>
+      <button data-city-preset="New York" class="px-3 py-1 bg-white/5 hover:bg-white/15 border border-white/10 rounded-full text-xs text-on-surface whitespace-nowrap transition-all">🇺🇸 New York</button>
+      <button data-city-preset="London" class="px-3 py-1 bg-white/5 hover:bg-white/15 border border-white/10 rounded-full text-xs text-on-surface whitespace-nowrap transition-all">🇬🇧 London</button>
+      <button data-city-preset="Tokyo" class="px-3 py-1 bg-white/5 hover:bg-white/15 border border-white/10 rounded-full text-xs text-on-surface whitespace-nowrap transition-all">🇯🇵 Tokyo</button>
+      <button data-city-preset="Paris" class="px-3 py-1 bg-white/5 hover:bg-white/15 border border-white/10 rounded-full text-xs text-on-surface whitespace-nowrap transition-all">🇫🇷 Paris</button>
+      <button data-city-preset="Dubai" class="px-3 py-1 bg-white/5 hover:bg-white/15 border border-white/10 rounded-full text-xs text-on-surface whitespace-nowrap transition-all">🇦🇪 Dubai</button>
+      <button data-city-preset="Sydney" class="px-3 py-1 bg-white/5 hover:bg-white/15 border border-white/10 rounded-full text-xs text-on-surface whitespace-nowrap transition-all">🇦🇺 Sydney</button>
+      <button data-city-preset="Mumbai" class="px-3 py-1 bg-white/5 hover:bg-white/15 border border-white/10 rounded-full text-xs text-on-surface whitespace-nowrap transition-all">🇮🇳 Mumbai</button>
+    </div>
+  </div>
+
+  <!-- MAIN VIEW CONTAINER -->
+  <main class="pt-2 pb-24 md:pb-12 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+    
+    <!-- 1. DASHBOARD VIEW (DEFAULT) -->
+    <div id="dashboard-view" class="grid grid-cols-4 md:grid-cols-12 gap-card-gap">
+      
+      <!-- HERO CITY SHOWCASE (Spans 8 cols on desktop, full on mobile) -->
+      <section class="col-span-4 md:col-span-8 relative rounded-2xl overflow-hidden glass-panel min-h-[420px] md:min-h-[500px] flex flex-col justify-between p-6 md:p-10 shadow-2xl">
+        
+        <!-- Skeleton Loading Overlay -->
+        <div id="hero-skeleton-overlay" class="hidden absolute inset-0 z-20 skeleton backdrop-blur-md"></div>
+
+        <!-- City Backdrop Photo & Overlays -->
+        <div class="absolute inset-0 z-0 overflow-hidden">
+          <img id="hero-city-bg" class="w-full h-full object-cover opacity-75 mix-blend-luminosity hover:mix-blend-normal city-bg-image transition-all duration-700" 
+               src="assets/toronto.jpg" 
+               alt="Toronto skyline cityscape view"
+               onerror="this.onerror=null; this.src='assets/toronto.jpg';"/>
+          <div class="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20"></div>
+          <div class="absolute inset-0 bg-gradient-to-r from-background/70 via-transparent to-background/40"></div>
+        </div>
+
+        <!-- Top Header inside Hero (Time & Actions) -->
+        <div class="relative z-10 flex justify-between items-center">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full glass-panel-heavy text-xs font-medium text-primary-container border border-white/10">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Live Real-Time
+            </span>
+            <span id="hero-local-time" class="text-xs text-on-surface-variant font-mono hidden sm:inline-block"></span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button id="favorite-toggle-btn" class="p-2 rounded-full glass-panel-heavy hover:bg-white/15 border border-white/10 transition-colors flex items-center justify-center" title="Save to Favorites">
+              <span id="fav-icon-symbol" class="material-symbols-outlined text-lg text-on-surface-variant" style="font-variation-settings: 'FILL' 0;">favorite</span>
+            </button>
+            <button id="refresh-weather-btn" class="p-2 rounded-full glass-panel-heavy hover:bg-white/15 border border-white/10 transition-colors flex items-center justify-center" title="Refresh Live Data">
+              <span class="material-symbols-outlined text-lg text-on-surface-variant hover:text-primary transition-transform active:rotate-180">refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bottom Weather & City Details inside Hero -->
+        <div class="relative z-10 flex flex-col md:flex-row justify-between items-end gap-6 mt-16 md:mt-0">
+          <div>
+            <h2 id="hero-location-text" class="font-headline-lg-mobile md:font-headline-lg text-primary flex items-center gap-2 mb-2 font-bold drop-shadow-md">
+              <span class="material-symbols-outlined text-2xl text-primary">location_on</span> Toronto, Ontario, Canada
+            </h2>
+            <p class="text-on-surface-variant font-label-caps text-label-caps uppercase tracking-widest mb-4 flex items-center gap-2">
+              Current Condition
+            </p>
+            <div class="flex items-center gap-5">
+              <span id="hero-temperature" class="font-display-xl text-display-xl text-white text-glow font-bold">24°</span>
+              <div class="flex flex-col">
+                <span id="hero-condition-text" class="text-2xl md:text-3xl font-semibold text-primary-container">Sunny</span>
+                <span id="hero-hilo-text" class="text-sm text-on-surface-variant font-mono mt-0.5">H: 26° L: 18° • Feels like 24°</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Glass Floating Wind & Humidity Card -->
+          <div class="glass-panel-heavy rounded-2xl p-4 flex gap-6 border border-white/15 shadow-xl w-full md:w-auto justify-around">
+            <div class="flex flex-col items-center">
+              <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mb-1">
+                <span class="material-symbols-outlined text-primary text-lg">air</span>
+              </div>
+              <span class="font-label-caps text-label-caps text-on-surface-variant">Wind</span>
+              <span id="hero-wind-value" class="font-semibold text-white text-sm">12 km/h</span>
+            </div>
+            <div class="w-px bg-white/15 my-1"></div>
+            <div class="flex flex-col items-center">
+              <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mb-1">
+                <span class="material-symbols-outlined text-primary text-lg">water_drop</span>
+              </div>
+              <span class="font-label-caps text-label-caps text-on-surface-variant">Humidity</span>
+              <span id="hero-humidity-value" class="font-semibold text-white text-sm">45%</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT SIDEBAR (Spans 4 cols on desktop, full on mobile) -->
+      <aside class="col-span-4 md:col-span-4 flex flex-col gap-card-gap">
+        
+        <!-- 3D Weather Icon Highlight Card (Perfect Fit) -->
+        <div class="glass-panel rounded-2xl flex flex-col justify-between relative overflow-hidden h-48 md:h-52 shadow-xl group border border-white/15">
+          <!-- Full-Bleed 3D Atmospheric Weather Image with Smooth Fit -->
+          <div class="absolute inset-0 overflow-hidden">
+            <img id="sidebar-3d-icon" 
+                 class="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-700 ease-out" 
+                 src="assets/weather_sunny.jpg" 
+                 alt="3D Live Weather Atmosphere"
+                 onerror="this.onerror=null; this.src='assets/weather_sunny.jpg';"/>
+            <!-- Seamless Atmospheric Gradient Vignette Overlay -->
+            <div class="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-background/20"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-background/40 via-transparent to-background/40"></div>
+          </div>
+
+          <!-- Top Label Badge -->
+          <div class="relative z-10 p-4 flex justify-between items-center">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full glass-panel-heavy text-[11px] font-semibold text-primary-container border border-white/10 uppercase tracking-wider backdrop-blur-md">
+              <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+              Atmosphere
+            </span>
+          </div>
+
+          <!-- Bottom Condition Title with Text Glow -->
+          <div class="relative z-10 p-4 pt-0">
+            <p id="sidebar-condition-title" class="font-headline-lg-mobile text-xl md:text-2xl text-white font-bold tracking-tight drop-shadow-lg text-glow">Clear Skies</p>
+          </div>
+        </div>
+
+        <!-- Precipitation & Air Quality Bento Grid -->
+        <div class="grid grid-cols-2 gap-card-gap h-full">
+          <!-- Precipitation Bento Card -->
+          <div class="glass-panel rounded-2xl p-5 flex flex-col justify-between shadow-lg relative overflow-hidden group min-h-[220px]">
+            <!-- Top Row -->
+            <div class="flex justify-between items-start z-10">
+              <span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">Precipitation</span>
+              <div class="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-400/20 flex items-center justify-center shadow-inner">
+                <span class="material-symbols-outlined text-primary-container text-lg">rainy</span>
+              </div>
+            </div>
+
+            <!-- Animated Rain Cloud & Falling Drops Graphic -->
+            <div class="my-auto py-1 flex items-center justify-center relative z-10">
+              <div class="relative w-full h-24 flex items-center justify-center">
+                <svg class="w-full h-full max-w-[140px]" viewBox="0 0 120 85" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="cloudGrad" x1="10" y1="5" x2="110" y2="40" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stop-color="#93c5fd" stop-opacity="0.98"/>
+                      <stop offset="50%" stop-color="#60a5fa" stop-opacity="0.95"/>
+                      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.9"/>
+                    </linearGradient>
+                    <linearGradient id="dropGrad" x1="0" y1="0" x2="0" y2="100%" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stop-color="#bfdbfe" stop-opacity="0.95"/>
+                      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.85"/>
+                    </linearGradient>
+                    <filter id="glowBlue" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="3" result="blur"/>
+                      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                    </filter>
+                    <!-- Clip Path ensuring rain only ever appears strictly beneath the cloud base (Y >= 40) -->
+                    <clipPath id="rainUnderCloudClip">
+                      <rect x="0" y="40" width="120" height="45"/>
+                    </clipPath>
+                  </defs>
+
+                  <!-- Cloud Aura Glow -->
+                  <ellipse cx="60" cy="22" rx="36" ry="14" fill="#3b82f6" fill-opacity="0.25" filter="url(#glowBlue)"/>
+
+                  <!-- Animated Falling Raindrop Streams (Clipped strictly beneath cloud) -->
+                  <g id="precip-drops-group" clip-path="url(#rainUnderCloudClip)">
+                    <line class="raindrop-stream raindrop-1" x1="34" y1="41" x2="31" y2="54" stroke="url(#dropGrad)" stroke-width="2.2" stroke-linecap="round"/>
+                    <line class="raindrop-stream raindrop-2" x1="45" y1="41" x2="42" y2="56" stroke="url(#dropGrad)" stroke-width="2.5" stroke-linecap="round"/>
+                    <line class="raindrop-stream raindrop-3" x1="56" y1="41" x2="53" y2="55" stroke="url(#dropGrad)" stroke-width="2.2" stroke-linecap="round"/>
+                    <line class="raindrop-stream raindrop-4" x1="67" y1="41" x2="64" y2="57" stroke="url(#dropGrad)" stroke-width="2.5" stroke-linecap="round"/>
+                    <line class="raindrop-stream raindrop-5" x1="78" y1="41" x2="75" y2="55" stroke="url(#dropGrad)" stroke-width="2.2" stroke-linecap="round"/>
+                    <line class="raindrop-stream raindrop-6" x1="88" y1="41" x2="85" y2="53" stroke="url(#dropGrad)" stroke-width="2.0" stroke-linecap="round"/>
+                  </g>
+
+                  <!-- Static Solid Glass Cloud (Stationary, on top of rain layer) -->
+                  <g id="static-precip-cloud">
+                    <path d="M35 32 C28 32 22 27 22 20 C22 14 27 9 34 9 C36 4 43 1 52 1 C63 1 71 8 73 15 C76 14 79 14 82 15 C89 17 94 23 94 30 C94 36 88 40 80 40 L35 40 C29 40 24 37 24 32" 
+                          fill="url(#cloudGrad)" 
+                          stroke="rgba(255,255,255,0.6)" 
+                          stroke-width="1.2" 
+                          filter="drop-shadow(0 4px 12px rgba(96,165,250,0.45))"/>
+                    <path d="M42 6 C48 4 56 4 64 7 C69 9 72 13 73 17" 
+                          stroke="rgba(255,255,255,0.85)" 
+                          stroke-width="1.5" 
+                          stroke-linecap="round"/>
+                  </g>
+
+                  <!-- Animated Ground Splash Ripples (Surface Level Y=76) -->
+                  <g id="precip-ripples-group">
+                    <ellipse class="splash-ripple ripple-1" cx="42" cy="76" rx="6" ry="1.8" stroke="#38bdf8" fill="none"/>
+                    <ellipse class="splash-ripple ripple-2" cx="64" cy="77" rx="7" ry="2.0" stroke="#60a5fa" fill="none"/>
+                    <ellipse class="splash-ripple ripple-3" cx="53" cy="76" rx="5" ry="1.5" stroke="#93c5fd" fill="none"/>
+                    <ellipse class="splash-ripple ripple-4" cx="75" cy="77" rx="5.5" ry="1.6" stroke="#38bdf8" fill="none"/>
+                  </g>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Bottom Precipitation Info -->
+            <div class="z-10 mt-2">
+              <span id="bento-precip-prob" class="text-3xl font-bold text-white block mb-0.5">10%</span>
+              <span id="bento-precip-amount" class="text-xs text-on-surface-variant">0 mm in last 24h</span>
+            </div>
+          </div>
+
+          <!-- Air Quality Bento Card -->
+          <div class="glass-panel rounded-2xl p-5 flex flex-col justify-between shadow-lg relative overflow-hidden group min-h-[220px]">
+            <!-- Top Row -->
+            <div class="flex justify-between items-start z-10">
+              <span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">Air Quality</span>
+              <div class="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-400/20 flex items-center justify-center shadow-inner">
+                <span class="material-symbols-outlined text-emerald-400 text-lg">air</span>
+              </div>
+            </div>
+
+            <!-- Precision Radial Working AQI Meter -->
+            <div class="my-auto py-1 flex items-center justify-center relative z-10">
+              <div class="relative w-full h-28 flex items-center justify-center">
+                <svg id="aqi-dynamic-svg" class="w-full h-full max-w-[155px]" viewBox="0 0 160 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="aqiFullGaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#10b981"/>
+                      <stop offset="25%" stop-color="#84cc16"/>
+                      <stop offset="50%" stop-color="#eab308"/>
+                      <stop offset="72%" stop-color="#f97316"/>
+                      <stop offset="88%" stop-color="#ef4444"/>
+                      <stop offset="100%" stop-color="#a855f7"/>
+                    </linearGradient>
+                    <filter id="needleGlow" x="-50%" y="-50%" width="200%" height="200%">
+                      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+                      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                    </filter>
+                  </defs>
+
+                  <!-- Outer Meter Bezel & Calibrated Background Track -->
+                  <path d="M 24 78 A 56 56 0 0 1 136 78" stroke="rgba(255,255,255,0.08)" stroke-width="7.5" stroke-linecap="round" fill="none"/>
+                  
+                  <!-- Segmented Colored Scale Track -->
+                  <path d="M 24 78 A 56 56 0 0 1 136 78" stroke="url(#aqiFullGaugeGrad)" stroke-width="7.5" stroke-linecap="round" fill="none" opacity="0.35"/>
+
+                  <!-- Active Illuminated Dynamic Progress Arc (Fills up to the exact live AQI!) -->
+                  <path id="aqi-active-arc" d="M 24 78 A 56 56 0 0 1 136 78" stroke="url(#aqiFullGaugeGrad)" stroke-width="7.5" stroke-linecap="round" fill="none" stroke-dasharray="176" stroke-dashoffset="120" style="transition: stroke-dashoffset 1.4s cubic-bezier(0.34, 1.3, 0.64, 1);"/>
+
+                  <!-- Calibrated Scale Ticks (0, 50, 100, 150, 200, 300+) -->
+                  <line x1="24" y1="78" x2="16" y2="78" stroke="#10b981" stroke-width="1.8" stroke-linecap="round"/>
+                  <line x1="40" y1="42" x2="33" y2="38" stroke="#84cc16" stroke-width="1.5" stroke-linecap="round"/>
+                  <line x1="80" y1="22" x2="80" y2="13" stroke="#eab308" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="120" y1="42" x2="127" y2="38" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/>
+                  <line x1="136" y1="78" x2="144" y2="78" stroke="#a855f7" stroke-width="1.8" stroke-linecap="round"/>
+
+                  <!-- Scale Values Legend -->
+                  <text x="14" y="91" fill="#94a3b8" font-size="8.5" font-family="inherit" font-weight="600" text-anchor="middle">0</text>
+                  <text x="32" y="32" fill="#94a3b8" font-size="7.5" font-family="inherit" font-weight="600" text-anchor="middle">50</text>
+                  <text x="80" y="10" fill="#94a3b8" font-size="8.5" font-family="inherit" font-weight="700" text-anchor="middle">100</text>
+                  <text x="128" y="32" fill="#94a3b8" font-size="7.5" font-family="inherit" font-weight="600" text-anchor="middle">200</text>
+                  <text x="146" y="91" fill="#94a3b8" font-size="8.5" font-family="inherit" font-weight="700" text-anchor="middle">300+</text>
+
+                  <!-- Dynamic Precision Working Needle (Centered at 80, 78) -->
+                  <g id="aqi-needle-group" transform="rotate(0 80 78)" style="transition: transform 1.4s cubic-bezier(0.34, 1.4, 0.64, 1);">
+                    <!-- Needle Glow / Shadow -->
+                    <line x1="80" y1="78" x2="80" y2="25" stroke="#ffffff" stroke-width="3" stroke-linecap="round" filter="url(#needleGlow)"/>
+                    <!-- Needle Blade -->
+                    <polygon points="78.5,78 81.5,78 80.5,24 79.5,24" fill="#ffffff"/>
+                    <!-- Needle Pointer Tip (Dynamic Color) -->
+                    <polygon id="aqi-needle-tip" points="79,28 81,28 80,21" fill="#10b981"/>
+                    <!-- Center Pivot Base -->
+                    <circle cx="80" cy="78" r="7.5" fill="#0f172a" stroke="#ffffff" stroke-width="2.2"/>
+                    <circle cx="80" cy="78" r="3.5" fill="#10b981" id="aqi-center-dot"/>
+                  </g>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Bottom Air Quality Info -->
+            <div class="z-10 mt-1">
+              <div class="flex items-baseline justify-between gap-1">
+                <div>
+                  <span id="bento-aqi-value" class="text-3xl font-bold text-white block mb-0.5">42</span>
+                  <span class="text-[11px] text-on-surface-variant">US AQI Index</span>
+                </div>
+                <span id="bento-aqi-status" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">Good</span>
+              </div>
+              <!-- Sub-pollutant live metrics row -->
+              <div id="bento-aqi-pollutants" class="text-[10px] text-on-surface-variant font-mono mt-1.5 flex items-center justify-between border-t border-white/10 pt-1.5">
+                <span id="aqi-pm25">PM2.5: --</span>
+                <span id="aqi-pm10">PM10: --</span>
+                <span id="aqi-o3">O₃: --</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- EXTRA BENTO ANALYTICS ROW (UV Index, Pressure, Sunrise & Sunset) -->
+      <section class="col-span-4 md:col-span-12 grid grid-cols-2 md:grid-cols-4 gap-card-gap">
+        <!-- UV Index -->
+        <div class="glass-panel rounded-2xl p-4 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-amber-400 text-xl">wb_sunny</span>
+          </div>
+          <div>
+            <span class="text-[11px] text-on-surface-variant font-label-caps block uppercase">UV Index</span>
+            <div class="flex items-center gap-2">
+              <span id="bento-uv-value" class="text-xl font-bold text-white">3</span>
+              <span id="bento-uv-status" class="text-xs text-amber-300 font-medium">Moderate</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Atmospheric Pressure -->
+        <div class="glass-panel rounded-2xl p-4 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-purple-400 text-xl">compress</span>
+          </div>
+          <div>
+            <span class="text-[11px] text-on-surface-variant font-label-caps block uppercase">Pressure</span>
+            <span id="bento-pressure-value" class="text-xl font-bold text-white">1013 hPa</span>
+          </div>
+        </div>
+
+        <!-- Sunrise -->
+        <div class="glass-panel rounded-2xl p-4 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-amber-400 text-xl">wb_twilight</span>
+          </div>
+          <div>
+            <span class="text-[11px] text-on-surface-variant font-label-caps block uppercase">Sunrise</span>
+            <span id="bento-sunrise-value" class="text-xl font-bold text-white font-mono">6:32 AM</span>
+          </div>
+        </div>
+
+        <!-- Sunset -->
+        <div class="glass-panel rounded-2xl p-4 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-indigo-400 text-xl">nights_stay</span>
+          </div>
+          <div>
+            <span class="text-[11px] text-on-surface-variant font-label-caps block uppercase">Sunset</span>
+            <span id="bento-sunset-value" class="text-xl font-bold text-white font-mono">8:14 PM</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- HOURLY FORECAST SECTION (Full width 12 cols) -->
+      <section class="col-span-4 md:col-span-12 glass-panel rounded-2xl p-6 shadow-xl">
+        <div class="flex justify-between items-center mb-5">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-xl">schedule</span>
+            <h3 class="font-headline-lg-mobile text-white font-bold">24-Hour Forecast</h3>
+          </div>
+          <span class="text-xs text-on-surface-variant font-mono">Hourly Breakdown</span>
+        </div>
+        <div id="hourly-forecast-track" class="flex overflow-x-auto gap-3 pb-2 custom-scrollbar">
+          <!-- Dynamically filled by app.js -->
+        </div>
+      </section>
+
+      <!-- 7-DAY FORECAST OUTLOOK (Full width 12 cols) -->
+      <section class="col-span-4 md:col-span-12 glass-panel rounded-2xl p-6 shadow-xl">
+        <div class="flex justify-between items-center mb-5">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-xl">calendar_month</span>
+            <h3 class="font-headline-lg-mobile text-white font-bold">7-Day Outlook</h3>
+          </div>
+          <span class="text-xs text-on-surface-variant font-mono">Min / Max Range</span>
+        </div>
+        <div id="daily-forecast-container" class="flex flex-col gap-1">
+          <!-- Dynamically filled by app.js -->
+        </div>
+      </section>
+
+    </div>
+
+    <!-- 2. INTERACTIVE MAPS VIEW -->
+    <div id="maps-view" class="hidden glass-panel rounded-2xl p-4 md:p-6 shadow-2xl">
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 mb-4">
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <span class="material-symbols-outlined text-primary text-2xl">public</span>
+          <div>
+            <h2 class="font-headline-lg-mobile text-xl font-bold text-white">AeroWeather Maps</h2>
+            <p class="text-xs text-on-surface-variant">Enter PIN/ZIP code, city, or county to inspect weather</p>
+          </div>
+        </div>
+
+        <!-- Map Location Search Bar (PIN / ZIP / City / County) -->
+        <div class="relative w-full lg:max-w-md mx-0 lg:mx-3">
+          <div class="relative flex items-center">
+            <span class="material-symbols-outlined absolute left-3 text-primary text-lg pointer-events-none">pin_drop</span>
+            <input id="map-search-input" 
+                   class="w-full bg-white/10 hover:bg-white/15 focus:bg-white/20 border border-white/20 focus:border-primary rounded-xl py-2 pl-9 pr-4 text-xs sm:text-sm text-white placeholder-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary transition-all shadow-inner" 
+                   placeholder="Enter PIN/ZIP or city name..." 
+                   type="text" 
+                   autocomplete="off"/>
+          </div>
+          <!-- Dropdown Results -->
+          <div id="map-search-dropdown" class="search-dropdown-menu hidden absolute top-full left-0 right-0 mt-1.5 glass-panel-heavy rounded-xl border border-white/20 overflow-hidden z-50 shadow-2xl max-h-72 overflow-y-auto custom-scrollbar"></div>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-3 self-stretch lg:self-auto justify-between lg:justify-end flex-shrink-0">
+          <!-- Map Style Switcher Pills -->
+          <div class="flex items-center gap-1 glass-panel-heavy p-1 rounded-xl border border-white/15 text-xs">
+            <button onclick="setMapStyle('satellite')" class="map-style-btn px-2.5 py-1 rounded-lg font-medium transition-all" data-style="satellite">🛰️ Satellite</button>
+            <button onclick="setMapStyle('dark')" class="map-style-btn px-2.5 py-1 rounded-lg font-medium transition-all" data-style="dark">🌑 Dark</button>
+            <button onclick="setMapStyle('streets')" class="map-style-btn px-2.5 py-1 rounded-lg font-medium transition-all" data-style="streets">🗺️ Streets</button>
+          </div>
+
+          <button onclick="switchTab('dashboard')" class="px-3.5 py-1.5 glass-panel-heavy rounded-full text-xs font-semibold text-primary hover:bg-white/15 border border-white/10 transition-colors">
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+
+      <!-- Map Display Stage -->
+      <div class="relative w-full rounded-xl overflow-hidden border border-white/15 bg-background shadow-inner" style="height: 580px; min-height: 580px;">
+        
+        <!-- High-Res Interactive Map Container (Satellite by default) -->
+        <div id="maps-container" class="w-full h-full" style="position: absolute; inset: 0; z-index: 10;"></div>
+
+        <!-- Cinematic 3D Flight Transition Overlay -->
+        <div id="cinematic-flight-banner" class="hidden absolute top-4 left-1/2 -translate-x-1/2 glass-panel-heavy px-4 py-2 rounded-2xl border border-primary/40 shadow-2xl flex items-center gap-3 z-40 transition-all pointer-events-none">
+          <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+            <span class="material-symbols-outlined text-primary text-lg animate-spin-slow">rocket_launch</span>
+          </div>
+          <div>
+            <div class="text-xs font-bold text-white flex items-center gap-1.5">
+              <span>3D Earth Flight Navigation</span>
+              <span class="px-1.5 py-0.5 rounded bg-primary/20 text-primary text-[10px] font-mono font-bold">ORBITAL DIVE</span>
+            </div>
+            <div class="text-[11px] text-on-surface-variant font-mono" id="cinematic-flight-target">Navigating to target...</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 3. LIVE RADAR VIEW -->
+    <div id="radar-view" class="hidden glass-panel rounded-2xl p-4 md:p-6 shadow-2xl">
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-3">
+        <div class="flex items-center gap-2.5 flex-shrink-0">
+          <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+            <span class="material-symbols-outlined text-primary text-2xl animate-spin-slow">radar</span>
+          </div>
+          <div>
+            <h2 class="font-headline-lg-mobile text-xl font-bold text-white">Live Precipitation Radar</h2>
+            <p class="text-xs text-on-surface-variant">Real-time RainViewer Doppler weather radar loop</p>
+          </div>
+        </div>
+
+        
+        <!-- Radar Player Controls -->
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3 glass-panel-heavy px-3.5 py-2.5 rounded-2xl border border-white/15 shadow-xl flex-shrink-0">
+          <!-- Map Style Switcher for Radar -->
+          <div class="flex items-center gap-1 p-0.5 rounded-lg bg-white/5 border border-white/10 text-xs">
+            <button onclick="setMapStyle('satellite')" class="radar-style-btn px-2 py-1 rounded-md font-medium transition-all" data-style="satellite" title="Satellite Imagery">🛰️ Satellite</button>
+            <button onclick="setMapStyle('dark')" class="radar-style-btn px-2 py-1 rounded-md font-medium transition-all" data-style="dark" title="Dark Matter">🌑 Dark</button>
+            <button onclick="setMapStyle('streets')" class="radar-style-btn px-2 py-1 rounded-md font-medium transition-all" data-style="streets" title="Streets">🗺️ Streets</button>
+          </div>
+
+          <div class="h-6 w-px bg-white/15 mx-0.5 hidden sm:block"></div>
+
+          <!-- Step Prev -->
+          <button id="radar-prev-btn" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all active:scale-95" title="Previous Frame">
+            <span class="material-symbols-outlined text-base">skip_previous</span>
+          </button>
+
+          <!-- Play / Pause -->
+          <button id="radar-play-btn" class="w-9 h-9 rounded-xl bg-primary text-background flex items-center justify-center font-bold hover:bg-white transition-all shadow-md shadow-primary/25 active:scale-95" title="Play / Pause Radar Loop">
+            <span id="radar-play-icon" class="material-symbols-outlined text-xl">play_arrow</span>
+          </button>
+
+          <!-- Step Next -->
+          <button id="radar-next-btn" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all active:scale-95" title="Next Frame">
+            <span class="material-symbols-outlined text-base">skip_next</span>
+          </button>
+
+          <div class="h-6 w-px bg-white/15 mx-1 hidden sm:block"></div>
+
+          <!-- Timestamp & Frame Status -->
+          <div class="flex flex-col min-w-[120px]">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="text-[10px] text-on-surface-variant font-label-caps tracking-wider uppercase">RADAR FRAME</span>
+            </div>
+            <span id="radar-frame-time" class="text-xs font-mono font-bold text-primary">Loading live radar...</span>
+          </div>
+
+          <div class="h-6 w-px bg-white/15 mx-1 hidden sm:block"></div>
+
+          <!-- Radar Legend -->
+          <div class="hidden lg:flex items-center gap-1.5 text-[11px] text-on-surface-variant">
+            <span>Rain:</span>
+            <div class="flex items-center rounded-full overflow-hidden h-2.5 w-20 border border-white/20">
+              <span class="h-full w-1/4 bg-cyan-400" title="Light"></span>
+              <span class="h-full w-1/4 bg-blue-500" title="Moderate"></span>
+              <span class="h-full w-1/4 bg-amber-400" title="Heavy"></span>
+              <span class="h-full w-1/4 bg-rose-500" title="Extreme"></span>
+            </div>
+          </div>
+
+          <button onclick="switchTab('dashboard')" class="ml-auto sm:ml-2 px-3 py-1.5 glass-panel-heavy rounded-full text-xs font-semibold text-primary hover:bg-white/15 border border-white/10 transition-colors">
+            Dashboard
+          </button>
+        </div>
+      </div>
+
+      <!-- Radar Timeline Scrubber Bar -->
+      <div class="mb-3 px-1">
+        <div id="radar-scrubber-track" class="flex gap-1.5 items-center w-full h-3">
+          <!-- Dynamic frame indicators filled by JS -->
+        </div>
+      </div>
+
+      <div id="radar-container" class="w-full rounded-xl overflow-hidden border border-white/15 bg-background shadow-inner" style="height: 580px; min-height: 580px; position: relative; z-index: 10;"></div>
+    </div>
+
+  </main>
+
+  <!-- SETTINGS MODAL -->
+  <div id="settings-modal" class="hidden fixed inset-0 z-50 modal-backdrop bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="modal-content glass-panel-heavy rounded-2xl p-6 md:p-8 max-w-md w-full border border-white/20 shadow-2xl relative">
+      <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-2xl">settings</span>
+          <h3 class="text-xl font-bold text-white">Preferences</h3>
+        </div>
+        <button id="close-settings-btn" class="p-1 text-on-surface-variant hover:text-white rounded-full transition-colors">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-5">
+        <!-- Temperature Unit -->
+        <div class="flex items-center justify-between pb-4 border-b border-white/10">
+          <div>
+            <span class="font-medium text-white block text-sm">Temperature Unit</span>
+            <span class="text-xs text-on-surface-variant">Switch between Metric and Imperial</span>
+          </div>
+          <button id="settings-unit-toggle" class="px-3 py-1.5 bg-primary/10 border border-primary/30 rounded-lg text-xs font-bold text-primary hover:bg-primary/20 transition-all">
+            Toggle <span class="unit-toggle-label">°C</span>
+          </button>
+        </div>
+
+        <!-- Location Permission -->
+        <div class="flex items-center justify-between pb-4 border-b border-white/10">
+          <div>
+            <span class="font-medium text-white block text-sm">GPS Geolocation</span>
+            <span class="text-xs text-on-surface-variant">Detect current city automatically</span>
+          </div>
+          <button onclick="locateUser(); document.getElementById('settings-modal').classList.add('hidden');" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-medium text-white transition-all flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">my_location</span> Detect
+          </button>
+        </div>
+
+        <!-- About AeroWeather -->
+        <div class="pt-2">
+          <span class="text-xs text-on-surface-variant font-mono block">
+            AeroWeather v2.4 • Open-Meteo & RainViewer • Real-time Data
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Toast Notification -->
+  <div id="global-toast" class="fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl glass-panel-heavy text-sm font-medium border shadow-2xl transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none"></div>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
